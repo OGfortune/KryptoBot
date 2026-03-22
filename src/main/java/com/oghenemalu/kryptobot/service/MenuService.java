@@ -45,7 +45,6 @@ public class MenuService {
 
     }
 
-
     public SendMessage sendMessage(long chatId, String message) {
         return SendMessage.builder()
                 .chatId(chatId)

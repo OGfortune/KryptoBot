@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `Users`
+(
+    user_id    BIGINT PRIMARY KEY,
+    chat_id    BIGINT NOT NULL UNIQUE,
+    username   VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS `Alerts`
+(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    symbol VARCHAR(20) NOT NULL,
+    asset_type VARCHAR(10) NOT NULL,
+    condition_type VARCHAR(10) NOT NULL,
+    target_price DECIMAL(20, 8) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
