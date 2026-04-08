@@ -1,5 +1,7 @@
-package com.oghenemalu.kryptobot.service;
+package com.oghenemalu.kryptobot.bot.handler;
 
+import com.oghenemalu.kryptobot.bot.MenuService;
+import com.oghenemalu.kryptobot.price.PriceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -11,13 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
-public class CallBackService {
+public class CallBackHandler {
     private final MenuService menuService;
     private final Map<Long, String> userSelections = new ConcurrentHashMap<>();
-    private final CryptoPriceService cryptoPriceService;
-
-
-
+    private final PriceService cryptoPriceService;
 
     public void handleCallback(CallbackQuery callbackQuery, AbsSender absSender) {
         String data = callbackQuery.getData();
@@ -38,6 +37,4 @@ public class CallBackService {
             e.printStackTrace();
         }
     }
-
-
 }

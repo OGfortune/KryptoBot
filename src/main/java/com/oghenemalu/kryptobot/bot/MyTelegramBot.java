@@ -1,16 +1,9 @@
 package com.oghenemalu.kryptobot.bot;
 
-import com.oghenemalu.kryptobot.service.CallBackService;
-import com.oghenemalu.kryptobot.service.CryptoPriceService;
-import com.oghenemalu.kryptobot.service.MenuService;
-import com.oghenemalu.kryptobot.user.UserEntity;
+import com.oghenemalu.kryptobot.bot.handler.CallBackHandler;
 import com.oghenemalu.kryptobot.user.UserService;
 import io.github.cdimascio.dotenv.Dotenv;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -26,11 +19,11 @@ public class MyTelegramBot extends TelegramLongPollingBot {
     private final Dotenv dotenv = Dotenv.load();
 
     private final MenuService menuService;
-    private final CallBackService callBackService;
+    private final CallBackHandler callBackService;
 
     private final UserService userService;
 
-    public MyTelegramBot(MenuService menuService, CallBackService callBackService, UserService userService) {
+    public MyTelegramBot(MenuService menuService, CallBackHandler callBackService, UserService userService) {
         super(Dotenv.load().get("TELEGRAM_TOKEN"));
 
         String token = dotenv.get("TELEGRAM_TOKEN");
@@ -68,10 +61,8 @@ public class MyTelegramBot extends TelegramLongPollingBot {
             } else if (message.startsWith("/price")) {
                 tryExecute(menuService.selectCurrency(chatId));
             } else if (message.startsWith("/createAlert")) {
-                SendMessage sendMessage = new SendMessage();
                 userService.getOrCreateUser(userId, chatId, userName);
                 tryExecute(menuService.sendMessage(chatId, "Alert created!"));
-
             }
         } else if (update.hasCallbackQuery()) {
             callBackService.handleCallback(update.getCallbackQuery(), this);
