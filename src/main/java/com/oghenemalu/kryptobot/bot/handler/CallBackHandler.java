@@ -1,6 +1,6 @@
 package com.oghenemalu.kryptobot.bot.handler;
 
-import com.oghenemalu.kryptobot.bot.MenuService;
+import com.oghenemalu.kryptobot.bot.MenuBuilder;
 import com.oghenemalu.kryptobot.price.PriceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class CallBackHandler {
-    private final MenuService menuService;
+    private final MenuBuilder menuBuilder;
     private final Map<Long, String> userSelections = new ConcurrentHashMap<>();
     private final PriceService cryptoPriceService;
 
@@ -24,13 +24,13 @@ public class CallBackHandler {
         try {
             if (data.startsWith("currency:")) {
                 userSelections.put(chatId, data.split(":")[1]);
-                absSender.execute(menuService.selectCoinMenu(chatId));
+                absSender.execute(menuBuilder.selectCoinMenu(chatId));
 
             } else if (data.startsWith("coin:")) {
                 String currency = userSelections.get(chatId);
                 String coin = data.split(":")[1];
                 String price = cryptoPriceService.getPrice(coin, currency);
-                absSender.execute(menuService.sendMessage(chatId, price));
+                absSender.execute(menuBuilder.sendMessage(chatId, price));
 
             }
         } catch (TelegramApiException e) {

@@ -18,12 +18,12 @@ public class MyTelegramBot extends TelegramLongPollingBot {
 
     private final Dotenv dotenv = Dotenv.load();
 
-    private final MenuService menuService;
+    private final MenuBuilder menuBuilder;
     private final CallBackHandler callBackService;
 
     private final UserService userService;
 
-    public MyTelegramBot(MenuService menuService, CallBackHandler callBackService, UserService userService) {
+    public MyTelegramBot(MenuBuilder menuBuilder, CallBackHandler callBackService, UserService userService) {
         super(Dotenv.load().get("TELEGRAM_TOKEN"));
 
         String token = dotenv.get("TELEGRAM_TOKEN");
@@ -36,7 +36,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
         System.out.println("Username: " + (username != null ? username : "❌ NOT SET"));
         System.out.println("=".repeat(50));
 
-        this.menuService = menuService;
+        this.menuBuilder = menuBuilder;
         this.callBackService = callBackService;
         this.userService = userService;
     }
@@ -57,12 +57,12 @@ public class MyTelegramBot extends TelegramLongPollingBot {
 
             System.out.println(userId + " " + chatId + " " + message);
             if(message.startsWith("/start")) {
-                tryExecute(menuService.sendMessage(chatId, "Welcome to Kryptobot!"));
+                tryExecute(menuBuilder.sendMessage(chatId, "Welcome to Kryptobot!"));
             } else if (message.startsWith("/price")) {
-                tryExecute(menuService.selectCurrency(chatId));
+                tryExecute(menuBuilder.selectCurrency(chatId));
             } else if (message.startsWith("/createAlert")) {
                 userService.getOrCreateUser(userId, chatId, userName);
-                tryExecute(menuService.sendMessage(chatId, "Alert created!"));
+                tryExecute(menuBuilder.sendMessage(chatId, "Alert created!"));
             }
         } else if (update.hasCallbackQuery()) {
             callBackService.handleCallback(update.getCallbackQuery(), this);

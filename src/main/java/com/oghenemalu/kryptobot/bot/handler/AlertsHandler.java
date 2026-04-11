@@ -3,7 +3,7 @@ package com.oghenemalu.kryptobot.bot.handler;
 import com.oghenemalu.kryptobot.alerts.AlertRepo;
 import com.oghenemalu.kryptobot.alerts.AlertService;
 import com.oghenemalu.kryptobot.alerts.Alerts;
-import com.oghenemalu.kryptobot.bot.MenuService;
+import com.oghenemalu.kryptobot.bot.MenuBuilder;
 import com.oghenemalu.kryptobot.enums.ConditionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AlertsHandler implements CommandHandler {
     private final AlertService alertService;
-    private final MenuService menuService;
+    private final MenuBuilder menuBuilder;
 
     private static final Set<String> CRYPTO_SYMBOLS = Set.of(
             "BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "DOGE", "DOT", "MATIC", "AVAX"
@@ -51,7 +51,7 @@ public class AlertsHandler implements CommandHandler {
         String [] messageParts = message.trim().split("\\s+");
 
         if (messageParts.length != 4) {
-            menuService.sendMessage(chatId,
+            menuBuilder.sendMessage(chatId,
                     "❌ Invalid format.\n\n" +
                             "*Usage:*\n" +
                             "`/setalert <symbol> <above/below> <price>`\n\n" +
@@ -67,7 +67,7 @@ public class AlertsHandler implements CommandHandler {
             String price = messageParts[2];
 
             if (!CRYPTO_SYMBOLS.contains(symbol)) {
-                menuService.sendMessage(chatId, symbol + " is not a valid symbol." +
+                menuBuilder.sendMessage(chatId, symbol + " is not a valid symbol." +
                         "Please use one of the following: " + CRYPTO_SYMBOLS);
             }
 
@@ -75,18 +75,23 @@ public class AlertsHandler implements CommandHandler {
             try {
                 targetPrice = new BigDecimal(price);
                 if (targetPrice.compareTo(BigDecimal.ZERO) <= 0) {
-                    menuService.sendMessage(chatId, "❌ Price must be greater than 0");
+                    menuBuilder.sendMessage(chatId, "❌ Price must be greater than 0");
                     return;
                 }
             } catch (NumberFormatException e) {
-                menuService.sendMessage(chatId,
+                menuBuilder.sendMessage(chatId,
                         "❌ Invalid price format. Use numbers only.\n\n" +
                                 "Example: /setalert BTC above 50000");
                 return;
             }
 
-
-            ConditionType conditionType = ConditionType.valueOf(condition.toUpperCase());
+            ConditionType conditionType;
+            try {
+                conditionType = ConditionType.valueOf(condition.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                menuBuilder.sendMessage(chatId, "❌ Invalid condition type. Use 'above' or 'below'.");
+                return;
+            }
             alertService.createAlert(userId, symbol, conditionType, targetPrice);
 
             String successMessage = String.format("""
@@ -96,9 +101,9 @@ public class AlertsHandler implements CommandHandler {
                             You'll be notified when the price is triggered.
                             Use /alerts to see all your alerts.""",
                     symbol, conditionType, targetPrice);
-            menuService.sendMessage(chatId, successMessage);
+            menuBuilder.sendMessage(chatId, successMessage);
         } catch (Exception e) {
-            menuService.sendMessage(chatId, "❌ Error creating alert for: " + e.getMessage());
+            menuBuilder.sendMessage(chatId, "❌ Error creating alert for: " + e.getMessage());
         }
     }
     private void handleGetAlert(Update update) {
@@ -110,7 +115,7 @@ public class AlertsHandler implements CommandHandler {
             List<Alerts> alerts = alertService.getAlertsByUser(userId);
 
             if(alerts.isEmpty()) {
-                menuService.sendMessage(chatId,
+                menuBuilder.sendMessage(chatId,
                         "You have no active alerts at the moment for: " + userName +
                                 "\nCreate one with:\n" +
                                 "/setalert <symbol> <above/below> <price>\n\n" +
@@ -134,9 +139,9 @@ public class AlertsHandler implements CommandHandler {
             response.append("To delete: `/deletealert <number>`\n");
             response.append("Example: `/deletealert 1`");
 
-            menuService.sendMessage(chatId, response.toString());
+            menuBuilder.sendMessage(chatId, response.toString());
         }  catch (Exception e) {
-            menuService.sendMessage(chatId, "❌ Error getting alerts for: "
+            menuBuilder.sendMessage(chatId, "❌ Error getting alerts for: "
                     + userName
                     + "Please Try again later.");
         }
@@ -149,7 +154,7 @@ public class AlertsHandler implements CommandHandler {
 
         String [] parts = message.trim().split("\\s+");
         if (parts.length != 2) {
-            menuService.sendMessage(chatId,
+            menuBuilder.sendMessage(chatId,
                     "Usage: /deletealert <number>\n\n" +
                             "Use /alerts to see your alert numbers");
             return;
@@ -157,7 +162,7 @@ public class AlertsHandler implements CommandHandler {
         try {
             int alertId = Integer.parseInt(parts[1]);
             if (alertId <= 1) {
-                menuService.sendMessage(chatId,
+                menuBuilder.sendMessage(chatId,
                         "❌Please enter a valid alertToDelete number: " +
                                 "Alert number must be greater than 0.");
                 return;
@@ -165,12 +170,12 @@ public class AlertsHandler implements CommandHandler {
 
             List<Alerts> alerts = alertService.getAlertsByUser(userId);
             if(alerts.isEmpty()) {
-                menuService.sendMessage(chatId, "You have no active alerts at the moment for: " + userName);
+                menuBuilder.sendMessage(chatId, "You have no active alerts at the moment for: " + userName);
                 return;
             }
 
             if (alertId > alerts.size()) {
-                menuService.sendMessage(chatId, "❌ Invalid alertToDelete number" +
+                menuBuilder.sendMessage(chatId, "❌ Invalid alertToDelete number" +
                         "you have: " + alerts.size() + " alertToDelete numbers. use /alerts to see your alertToDelete numbers");
             }
 
@@ -178,7 +183,7 @@ public class AlertsHandler implements CommandHandler {
 
             boolean alertDeleted = alertService.deleteAlert(alertToDelete.getId());
             if(alertDeleted) {
-                menuService.sendMessage(chatId,
+                menuBuilder.sendMessage(chatId,
                         String.format("""
                                         Hi: %s\s
                                         ✅ Deleted alert:
@@ -188,15 +193,15 @@ public class AlertsHandler implements CommandHandler {
                                 alertToDelete.getConditionType().name().toLowerCase(),
                                 alertToDelete.getTargetPrice()));
             } else {
-                menuService.sendMessage(chatId, "❌ Failed to delete alert.");
+                menuBuilder.sendMessage(chatId, "❌ Failed to delete alert.");
             }
 
         } catch (NumberFormatException e) {
-            menuService.sendMessage(chatId,
+            menuBuilder.sendMessage(chatId,
                     "❌ Invalid number format.\n\n" +
                             "Usage: /deletealert 1");
         } catch (Exception e) {
-            menuService.sendMessage(chatId, "❌ Error deleting alert. Please try again.");
+            menuBuilder.sendMessage(chatId, "❌ Error deleting alert. Please try again.");
         }
     }
 }

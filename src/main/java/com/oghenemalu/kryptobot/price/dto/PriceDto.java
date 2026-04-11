@@ -34,7 +34,7 @@ public class PriceDto {
         return dto;
     }
 
-    public boolean error() {
+    public boolean hasError() {
         return error != null;
     }
 }

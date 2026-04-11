@@ -21,6 +21,9 @@ public class Alerts {
     @Column(nullable = false)
     private Long userId;
 
+    @Column(nullable = false)
+    private Long chatId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ConditionType conditionType;
@@ -38,5 +41,9 @@ public class Alerts {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+    }
+
+    public boolean shouldFire(BigDecimal currentPrice) {
+        return conditionType.matches(currentPrice, targetPrice);
     }
 }

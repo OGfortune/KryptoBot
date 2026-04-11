@@ -9,7 +9,7 @@ import java.util.List;
 
 
 @Service
-public class MenuService {
+public class MenuBuilder {
     public SendMessage selectCoinMenu(long chatId) {
         InlineKeyboardMarkup coinMarkUp = InlineKeyboardMarkup.builder()
                 .keyboardRow(List.of(
