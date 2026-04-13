@@ -1,4 +1,4 @@
-package com.oghenemalu.kryptobot.alerts;
+package com.oghenemalu.kryptobot.alert;
 
 import com.oghenemalu.kryptobot.enums.ConditionType;
 import jakarta.persistence.*;
@@ -11,12 +11,13 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Table(name = "alerts")
+@Table(name = "alert")
 @NoArgsConstructor
 @AllArgsConstructor
-public class Alerts {
+public class Alert {
     @Id
-    private int Id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long Id;
 
     @Column(nullable = false)
     private Long userId;

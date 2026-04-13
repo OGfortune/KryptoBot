@@ -1,7 +1,7 @@
 package com.oghenemalu.kryptobot.scheduler;
 
-import com.oghenemalu.kryptobot.alerts.AlertService;
-import com.oghenemalu.kryptobot.alerts.Alerts;
+import com.oghenemalu.kryptobot.alert.Alert;
+import com.oghenemalu.kryptobot.alert.AlertService;
 import com.oghenemalu.kryptobot.bot.MenuBuilder;
 import com.oghenemalu.kryptobot.price.PriceService;
 import com.oghenemalu.kryptobot.price.dto.PriceDto;
@@ -24,13 +24,13 @@ public class AlertScheduler {
     @Scheduled(fixedRate = 60000)
     public void checkAlerts() {
 
-        List<Alerts> activeAlerts = alertService.getAllActiveAlerts();
+        List<Alert> activeAlerts = alertService.getAllActiveAlerts();
         if (activeAlerts.isEmpty()) {
             return;
         }
 
-        Map<String, List<Alerts>> alertsBySymbol = activeAlerts.stream()
-                .collect(Collectors.groupingBy(Alerts::getSymbol));
+        Map<String, List<Alert>> alertsBySymbol = activeAlerts.stream()
+                .collect(Collectors.groupingBy(Alert::getSymbol));
 
         alertsBySymbol.forEach((symbol, alerts) -> {
             PriceDto priceDto = priceService.getPrice(symbol, "USD");
@@ -38,7 +38,7 @@ public class AlertScheduler {
                 return;
             }
 
-            for (Alerts alert : alerts) {
+            for (Alert alert : alerts) {
                 if (alert.shouldFire(priceDto.getPrice())) {
                     menuBuilder.sendMessage(alert.getChatId(), "Alert triggered for " + symbol + ": " + priceDto.getPrice()
                             + " is " + alert.getConditionType() + " or equals your target price of " + alert.getTargetPrice());
