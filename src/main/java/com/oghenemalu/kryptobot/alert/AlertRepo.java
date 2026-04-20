@@ -9,6 +9,6 @@ import java.util.List;
 public interface AlertRepo extends JpaRepository<Alert, Long> {
     int countByUserId(Long userId);
     List<Alert> findByUserId(Long userId);
-    List<Alert> findByUserIdAndActiveTrue(Long userId);
-    List<Alert> findByActiveTrue();
+    List<Alert> findByUserIdAndIsActiveTrue(Long userId);
+    List<Alert> findByIsActiveTrue();
 }

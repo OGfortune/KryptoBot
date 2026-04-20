@@ -5,6 +5,7 @@ import com.oghenemalu.kryptobot.alert.AlertRepo;
 import com.oghenemalu.kryptobot.alert.AlertService;
 import com.oghenemalu.kryptobot.bot.MenuBuilder;
 import com.oghenemalu.kryptobot.enums.ConditionType;
+import com.oghenemalu.kryptobot.price.CoinRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -24,14 +25,10 @@ import java.util.Set;
 public class AlertsHandler implements CommandHandler {
     private final AlertService alertService;
     private final MenuBuilder menuBuilder;
-
+    private final CoinRegistry coinRegistry;
 
 
     private static final Logger log = LoggerFactory.getLogger(AlertsHandler.class);
-
-    private static final Set<String> CRYPTO_SYMBOLS = Set.of(
-            "BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "DOGE", "DOT", "MATIC", "AVAX"
-    );
 
 
     @Override
@@ -58,16 +55,16 @@ public class AlertsHandler implements CommandHandler {
         long userId = update.getMessage().getFrom().getId();
         String userName = update.getMessage().getFrom().getUserName();
         String message = update.getMessage().getText();
-        String [] messageParts = message.trim().split("\\s+");
+        String[] messageParts = message.trim().split("\\s+");
 
         if (messageParts.length != 4) {
-           tryExecute (absSender, menuBuilder.sendMessage(chatId,
+            tryExecute(absSender, menuBuilder.sendMessage(chatId,
                     "❌ Invalid format.\n\n" +
                             "*Usage:*\n" +
                             "`/setalert <symbol> <above/below> <price>`\n\n" +
                             "*Examples:*\n" +
-                            "`/setalert BTC above 50000`\n" +
-                            "`/setalert ETH below 2000`\n"));
+                            "`/setalert btc above 50000`\n" +
+                            "`/setalert eth below 2000`\n"));
         }
 
 
@@ -76,9 +73,12 @@ public class AlertsHandler implements CommandHandler {
             String condition = messageParts[2].toUpperCase();
             String price = messageParts[3];
 
-            if (!CRYPTO_SYMBOLS.contains(symbol)) {
-                tryExecute(absSender, menuBuilder.sendMessage(chatId, symbol + " is not a valid symbol." +
-                        "Please use one of the following: " + CRYPTO_SYMBOLS));
+            if (!coinRegistry.isValidSymbol(symbol)) {
+                tryExecute(absSender, menuBuilder.sendMessage(chatId, "❌ " + symbol + " is not a valid symbol. or is not supported yet." +
+                        "We support the top 100 coins by market cap.\n" +
+                        "Common examples: BTC, ETH, SOL, BNB, XRP, ADA, DOGE\n\n" +
+                        "Use /coins to see the full list."));
+                return;
             }
 
             BigDecimal targetPrice;
@@ -114,8 +114,10 @@ public class AlertsHandler implements CommandHandler {
             tryExecute(absSender, menuBuilder.sendMessage(chatId, successMessage));
         } catch (Exception e) {
             tryExecute(absSender, menuBuilder.sendMessage(chatId, "❌ Error creating alert for: " + e.getMessage()));
+            log.error("Error creating alert for user {}: {}", userName, e.getMessage(), e);
         }
     }
+
     private void handleGetAlert(Update update, AbsSender absSender) {
         long chatId = update.getMessage().getChatId();
         long userId = update.getMessage().getFrom().getId();
@@ -124,7 +126,7 @@ public class AlertsHandler implements CommandHandler {
         try {
             List<Alert> alert = alertService.getAlertsByUser(userId);
 
-            if(alert.isEmpty()) {
+            if (alert.isEmpty()) {
                 tryExecute(absSender, menuBuilder.sendMessage(chatId,
                         "You have no active alert at the moment for: " + userName +
                                 "\nCreate one with:\n" +
@@ -133,12 +135,15 @@ public class AlertsHandler implements CommandHandler {
                 return;
             }
 
-            StringBuilder response = new StringBuilder("🔔 *Your Active Alerts:*\\n\\n");
-            for (int i=0; i<alert.size(); i++) {
+            StringBuilder response = new StringBuilder("🔔 *Your Active Alerts: \n");
+            for (int i = 0; i < alert.size(); i++) {
                 Alert alerts = alert.get(i);
                 response.append(String.format(
-                        "*%d.* %s %s %s $%s\n" +
-                                "   Created: %s\n\n",
+                        """
+                                %d* %s %s $%s\s
+                                   Created: %s
+                                
+                                """,
                         i + 1,
                         alerts.getSymbol(),
                         alerts.getConditionType().name().toLowerCase(),
@@ -150,19 +155,20 @@ public class AlertsHandler implements CommandHandler {
             response.append("Example: `/deletealert 1`");
 
             tryExecute(absSender, menuBuilder.sendMessage(chatId, response.toString()));
-        }  catch (Exception e) {
+        } catch (Exception e) {
             tryExecute(absSender, menuBuilder.sendMessage(chatId, "❌ Error getting alert for: "
                     + userName
                     + " Please Try again later. " + e.getMessage()));
         }
     }
+
     private void handleDeleteAlert(Update update, AbsSender absSender) {
         long chatId = update.getMessage().getChatId();
         long userId = update.getMessage().getFrom().getId();
         String userName = update.getMessage().getFrom().getUserName();
         String message = update.getMessage().getText();
 
-        String [] parts = message.trim().split("\\s+");
+        String[] parts = message.trim().split("\\s+");
         if (parts.length != 2) {
             tryExecute(absSender, menuBuilder.sendMessage(chatId,
                     "Usage: /deletealert <number>\n" +
@@ -179,7 +185,7 @@ public class AlertsHandler implements CommandHandler {
             }
 
             List<Alert> alert = alertService.getAlertsByUser(userId);
-            if(alert.isEmpty()) {
+            if (alert.isEmpty()) {
                 tryExecute(absSender, menuBuilder.sendMessage(chatId, "You have no active alert at the moment for: " + userName));
                 return;
             }
@@ -189,10 +195,10 @@ public class AlertsHandler implements CommandHandler {
                         "you have: " + alert.size() + " alertToDelete numbers. use /alert to see your alertToDelete numbers"));
             }
 
-            Alert alertToDelete = alert.get(alertId-1);
+            Alert alertToDelete = alert.get(alertId - 1);
 
             boolean alertDeleted = alertService.deleteAlert(alertToDelete.getId());
-            if(alertDeleted) {
+            if (alertDeleted) {
                 tryExecute(absSender, menuBuilder.sendMessage(chatId,
                         String.format("""
                                         Hi: %s\s
@@ -203,7 +209,7 @@ public class AlertsHandler implements CommandHandler {
                                 alertToDelete.getConditionType().name().toLowerCase(),
                                 alertToDelete.getTargetPrice())));
             } else {
-               tryExecute(absSender, menuBuilder.sendMessage(chatId, "❌ Failed to delete alert."));
+                tryExecute(absSender, menuBuilder.sendMessage(chatId, "❌ Failed to delete alert."));
             }
 
         } catch (NumberFormatException e) {

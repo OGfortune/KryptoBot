@@ -11,6 +11,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Service
@@ -19,10 +21,12 @@ public class PriceService {
 
     private final String apiKey;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final CoinRegistry coinRegistry;
 
-    public PriceService() {
+    public PriceService(CoinRegistry coinRegistry) {
         Dotenv dotenv = Dotenv.load();
         this.apiKey = dotenv.get("COIN_GECKO_KEY");
+        this.coinRegistry = coinRegistry;
     }
 
     @Cacheable("price")
@@ -44,6 +48,8 @@ public class PriceService {
                 return PriceDto.error(coin, currency, "❌Error fetching price: "
                         + response.getStatusText() + " for " + coin);
             }
+
+            System.out.println(response.getBody());
 
             //parse response
             JsonNode node = objectMapper.readTree(response.getBody());

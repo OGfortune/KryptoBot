@@ -29,11 +29,11 @@ public class AlertService {
     }
 
     public List<Alert> getActiveAlertsByUser(Long userId) {
-        return alertRepo.findByUserIdAndActiveTrue(userId);
+        return alertRepo.findByUserIdAndIsActiveTrue(userId);
     }
 
     public List<Alert> getAllActiveAlerts() {
-        return alertRepo.findByActiveTrue();
+        return alertRepo.findByIsActiveTrue();
     }
 
     public int getTotalAlerts(Long userId) {
