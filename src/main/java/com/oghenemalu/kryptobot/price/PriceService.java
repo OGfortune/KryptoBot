@@ -7,35 +7,44 @@ import io.github.cdimascio.dotenv.Dotenv;
 import kong.unirest.core.HttpResponse;
 
 import kong.unirest.core.Unirest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
 
 
+
+@Slf4j
 @Service
 public class PriceService {
 
-
     private final String apiKey;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CoinRegistry coinRegistry;
 
-    public PriceService(CoinRegistry coinRegistry) {
-        Dotenv dotenv = Dotenv.load();
-        this.apiKey = dotenv.get("COIN_GECKO_KEY");
+    public PriceService(CoinRegistry coinRegistry, @Value("${coingecko.api-key}") String apiKey) {
+
+        this.apiKey = apiKey;
         this.coinRegistry = coinRegistry;
     }
 
-    @Cacheable("price")
+    @Cacheable(value = "price", unless = "#result.hasError()")
     public PriceDto getPrice(String coin, String currency) {
-        return getCryptoPrice(coin, currency);
+        return getCryptoPrice(coin.toUpperCase(), currency.toUpperCase());
     }
 
     private PriceDto getCryptoPrice(String coin, String currency) {
         try {
+            if (coin == null || currency == null) {
+                return PriceDto.error(coin, currency, "❌Invalid coin or currency provided");
+            }
+
+            if (coinRegistry.isValidSymbol(coin)) {
+                coin = coinRegistry.getCoinId(coin);
+            }
             String url = String.format("https://api.coingecko.com/api/v3/simple/price?vs_currencies=%s&ids=%s&include_24hr_change=true",
                     currency, coin);
 
@@ -78,7 +87,7 @@ public class PriceService {
             //return price
             return PriceDto.ok(coin, currencySymbol, price, change24);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error fetching price for {}: {}", coin, e.getMessage(), e);
             //return error
             return PriceDto.error(coin, currency, "❌Error fetching price: " + e.getMessage() + " for " + coin);
         }

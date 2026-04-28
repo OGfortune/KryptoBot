@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Data
 @AllArgsConstructor
@@ -16,12 +17,12 @@ public class PriceDto {
     private BigDecimal change24;
     private String error;
 
-    public static PriceDto ok(String currencySymbol, String coinSymbol, BigDecimal price, BigDecimal change24) {
+    public static PriceDto ok(String coinSymbol, String currencySymbol, BigDecimal price, BigDecimal change24) {
         PriceDto dto = new PriceDto();
         dto.coinSymbol = coinSymbol;
         dto.currencySymbol = currencySymbol;
         dto.price = price;
-        dto.change24 = change24;
+        dto.change24 = change24.setScale(2, RoundingMode.HALF_UP);
         return dto;
     }
 

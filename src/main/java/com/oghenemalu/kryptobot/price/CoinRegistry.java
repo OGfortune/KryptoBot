@@ -15,6 +15,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,14 +23,18 @@ public class CoinRegistry {
 
     @Getter
     private Map<String, String> coinMap = new HashMap<>();
+    @Value("${coingecko.api-key}")
     private String apiKey;
     private final Dotenv dotenv = Dotenv.load();
     private final Logger log = LoggerFactory.getLogger(CoinRegistry.class.getName());
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    public CoinRegistry(@Value("${coingecko.api-key}") String apiKey) {
+        this.apiKey = apiKey;
+    }
     @PostConstruct
     public void init() {
-        this.apiKey = dotenv.get("COIN_GECKO_KEY");
+
         loadCoinList();
     }
 

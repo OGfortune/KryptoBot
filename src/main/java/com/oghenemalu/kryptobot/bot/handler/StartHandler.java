@@ -2,6 +2,7 @@ package com.oghenemalu.kryptobot.bot.handler;
 
 import com.oghenemalu.kryptobot.bot.MenuBuilder;
 import com.oghenemalu.kryptobot.price.CoinRegistry;
+import com.oghenemalu.kryptobot.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 @RequiredArgsConstructor
 public class StartHandler implements CommandHandler {
     private final MenuBuilder menuBuilder;
+    private final UserService userService;
     private static final Logger log = LoggerFactory.getLogger(StartHandler.class.getName());
 
 
@@ -67,7 +69,8 @@ public class StartHandler implements CommandHandler {
                 /start - Start the bot\s
                 /coins - List supported coins\s
                 /help - Show this help message\s
-                /price - Get price of a coin\s
+                /quickprice - allows users select the price of the most popular coins.\s
+                /price - search price of a coin /setalert <coin_symbol: e.g. btc> <currency: must be usd, eur, or gbp>\s
                 /setalert - Allows user to create alert format:/setalert <coin_symbol> <condition> <alert_price>\s
                 /getalerts - Returns all the users active alerts\s
                 /deletealert - Allows user to delete an alert format:/deletealert <alert_id>""";

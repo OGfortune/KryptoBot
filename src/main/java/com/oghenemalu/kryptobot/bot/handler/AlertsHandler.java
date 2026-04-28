@@ -6,6 +6,7 @@ import com.oghenemalu.kryptobot.alert.AlertService;
 import com.oghenemalu.kryptobot.bot.MenuBuilder;
 import com.oghenemalu.kryptobot.enums.ConditionType;
 import com.oghenemalu.kryptobot.price.CoinRegistry;
+import com.oghenemalu.kryptobot.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ public class AlertsHandler implements CommandHandler {
 
 
     private static final Logger log = LoggerFactory.getLogger(AlertsHandler.class);
+    private final UserService userService;
 
 
     @Override
@@ -65,6 +67,7 @@ public class AlertsHandler implements CommandHandler {
                             "*Examples:*\n" +
                             "`/setalert btc above 50000`\n" +
                             "`/setalert eth below 2000`\n"));
+            return;
         }
 
 
