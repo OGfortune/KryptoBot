@@ -93,8 +93,10 @@ public class AlertsHandler implements CommandHandler {
                 }
             } catch (NumberFormatException e) {
                 tryExecute(absSender, menuBuilder.sendMessage(chatId,
-                        "❌ Invalid price format. Use numbers only.\n\n" +
-                                "Example: /setalert BTC above 50000"));
+                        """
+                                ❌ Invalid price format. Use numbers only.
+                                
+                                Example: /setalert BTC above 50000"""));
                 return;
             }
 

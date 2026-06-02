@@ -6,8 +6,9 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5433/kryptobot
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -29,4 +30,4 @@ telegram:
     username: ${TELEGRAM_BOT_USERNAME}
 
 coingecko:
-  api-key: ${COINGECKO_API_KEY}
+  api-key: ${COIN_GECKO_KEY}

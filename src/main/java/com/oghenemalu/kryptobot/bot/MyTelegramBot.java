@@ -3,8 +3,6 @@ package com.oghenemalu.kryptobot.bot;
 import com.oghenemalu.kryptobot.bot.handler.CallBackHandler;
 import com.oghenemalu.kryptobot.bot.handler.CommandHandler;
 import com.oghenemalu.kryptobot.scheduler.AlertScheduler;
-import com.oghenemalu.kryptobot.user.UserService;
-import io.github.cdimascio.dotenv.Dotenv;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,7 +17,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
 
 
 
-    @Value("${telegram.username}")
+    @Value("${telegram.bot.username}")
     private String botUsername;
 
 

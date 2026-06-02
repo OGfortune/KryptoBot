@@ -9,9 +9,6 @@ import kong.unirest.core.Unirest;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-
-import io.github.cdimascio.dotenv.Dotenv;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,18 +20,16 @@ public class CoinRegistry {
 
     @Getter
     private Map<String, String> coinMap = new HashMap<>();
-    @Value("${coingecko.api-key}")
-    private String apiKey;
-    private final Dotenv dotenv = Dotenv.load();
+    private final String apiKey;
     private final Logger log = LoggerFactory.getLogger(CoinRegistry.class.getName());
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public CoinRegistry(@Value("${coingecko.api-key}") String apiKey) {
         this.apiKey = apiKey;
     }
+
     @PostConstruct
     public void init() {
-
         loadCoinList();
     }
 
@@ -49,8 +44,11 @@ public class CoinRegistry {
 
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
             Map<String, String> temp = new LinkedHashMap<>();
-            jsonNode.forEach(node ->
-                    temp.put(node.get("symbol").asText().toUpperCase(), node.get("id").asText()));
+            jsonNode.forEach(node -> {
+                String symbol = node.get("symbol").asText().toUpperCase();
+                String id = node.get("id").asText();
+                temp.putIfAbsent(symbol, id);
+            });
             coinMap = temp;
             log.info("Loaded {} coins", coinMap.size());
         } catch (Exception e) {
@@ -63,11 +61,10 @@ public class CoinRegistry {
     }
 
     public Map<String, String> getAllCoins() {
-        return Map.copyOf(coinMap);  // unmodifiable copy
+        //returning a copy of the map to prevent concurrent modification exceptions
+        return new LinkedHashMap<>(coinMap);
     }
-
     public String getCoinId(String symbol) {
         return coinMap.get(symbol.toUpperCase());
     }
-
 }

@@ -36,17 +36,21 @@ public class StartHandler implements CommandHandler {
     }
 
     private void handleStart(Update update, AbsSender absSender) {
+        Long userId = update.getMessage().getFrom().getId();
         Long chatId = update.getMessage().getChatId();
         String userName = update.getMessage().getFrom().getUserName();
-
         String response;
+
+        userService.getOrCreateUser(userId, chatId, userName);
 
         response = String.format("""
                 Hello, %s!\s
                 Welcome, My name is KryptoBot, and I am here to help you with some of your \
                 cryptocurrency services and management \
                 This includes getting current price 📈📉\s
-                🔔 setting alerts and getting notified""", userName);
+                🔔 setting alerts and getting notified\s
+                use /help to get more details on commands
+                /quickprice to get quick price""", userName);
 
         try {
             tryExecute(absSender, menuBuilder.sendMessage(chatId, response));
@@ -70,7 +74,7 @@ public class StartHandler implements CommandHandler {
                 /coins - List supported coins\s
                 /help - Show this help message\s
                 /quickprice - allows users select the price of the most popular coins.\s
-                /price - search price of a coin /setalert <coin_symbol: e.g. btc> <currency: must be usd, eur, or gbp>\s
+                /price - search price of a coin: '/price <coin_symbol: e.g. btc> <currency: must be usd, eur, or gbp>'\s
                 /setalert - Allows user to create alert format:/setalert <coin_symbol> <condition> <alert_price>\s
                 /getalerts - Returns all the users active alerts\s
                 /deletealert - Allows user to delete an alert format:/deletealert <alert_id>""";

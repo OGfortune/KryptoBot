@@ -40,25 +40,28 @@ public class AlertScheduler {
             return;
         }
         log.info("Checking alerts...");
-        System.out.println("Checking alerts...");
 
+        //create a list of active alerts
         List<Alert> activeAlerts = alertService.getAllActiveAlerts();
         if (activeAlerts.isEmpty()) {
             return;
         }
 
+        //group active alerts by symbol
         Map<String, List<Alert>> alertsBySymbol = activeAlerts.stream()
                 .collect(Collectors.groupingBy(Alert::getSymbol));
 
+        //check each alert
         alertsBySymbol.forEach((symbol, alerts) -> {
             PriceDto priceDto = priceService.getPrice(coinRegistry.getCoinId(symbol), "USD");
             if (priceDto.hasError()) {
                 return;
             }
 
-
+            //check if alert should fire
             for (Alert alert : alerts) {
                 try {
+                    //send alert if it should fire
                     if (alert.shouldFire(priceDto.getPrice())) {
                         absSender.execute(menuBuilder.sendMessage(alert.getChatId(), "Alert triggered for " + symbol + ": " + priceDto.getPrice()
                                 + " is " + alert.getConditionType() + " or equals your target price of " + alert.getTargetPrice()));
@@ -70,6 +73,4 @@ public class AlertScheduler {
         });
 
     }
-
-
 }
