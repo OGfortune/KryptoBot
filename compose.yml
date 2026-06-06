@@ -1,28 +1,56 @@
 services:
   kryptobot:
-    image: oghenemalu/kyptobot
+    image: kryptobot/kryptobot
+    container_name: kryptobot_app
     ports:
       - "8080:8080"
     env_file:
       - .env
-
     depends_on:
       redis:
-          condition: service_started
+          condition: service_healthy
       postgres:
-        condition: service_started
+        condition: service_healthy
+    networks:
+      - kryptobot-network
+
   redis:
     image: redis:latest
+    container_name: kryptobot_redis
     ports:
       - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kryptobot-network
+
   postgres:
-    image: postgres:latest
+    image: postgres:16
+    container_name: kryptobot_postgres
     env_file:
       - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kryptobot-network
 
 volumes:
   postgres_data:
+  redis_data:
+
+networks:
+  kryptobot-network:
+    driver: bridge

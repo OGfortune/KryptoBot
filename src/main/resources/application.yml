@@ -1,22 +1,43 @@
 spring:
   application:
     name: KryptoBot
+    version: 1.0.0
+
   config:
     import: optional:file:.env[.properties]
+
   datasource:
-    url: jdbc:postgresql://localhost:5433/kryptobot
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:5432/kryptobot
     driver-class-name: org.postgresql.Driver
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      auto-commit: true
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+
   data:
     redis:
-      host: localhost
+      host: ${REDIS_HOST:localhost}
       port: 6379
   cache:
     type: redis
@@ -31,3 +52,32 @@ telegram:
 
 coingecko:
   api-key: ${COIN_GECKO_KEY}
+  timeout: 10000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  metrics:
+    enable:
+      jvm: true
+      process: true
+      system: true
+
+app:
+  name: KryptoBot
+  description: Telegram bot for cryptocurrency tracking
+  version: 1.0.0

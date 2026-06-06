@@ -95,7 +95,6 @@
             <groupId>com.konghq</groupId>
             <artifactId>unirest-java-core</artifactId>
             <version>4.7.4</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -131,7 +130,7 @@
                 <version>3.5.1</version>
                 <configuration>
                     <to>
-                        <image>kryptobot/${project.artifactId}</image>
+                        <image>kryptobot/kryptobot</image>
                     </to>
                 </configuration>
             </plugin>
