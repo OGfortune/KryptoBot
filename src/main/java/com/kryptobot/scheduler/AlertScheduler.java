@@ -63,8 +63,12 @@ public class AlertScheduler {
                 try {
                     //send alert if it should fire
                     if (alert.shouldFire(priceDto.getPrice())) {
-                        absSender.execute(menuBuilder.sendMessage(alert.getChatId(), "Alert triggered for " + symbol + ": " + priceDto.getPrice()
-                                + " is " + alert.getConditionType() + " or equals your target price of " + alert.getTargetPrice()));
+                        String message = String.format("Alert has been triggered for %s. The current price of $%s is currently %s " +
+                                "or EQUALS your  target price of $%s, and the alert is now inactive. \n"
+                                + "use /getalerts to view all your active alerts",
+                                alert.getSymbol(), priceDto.getPrice(), alert.getConditionType(), alert.getTargetPrice());
+                        absSender.execute(menuBuilder.sendMessage(alert.getChatId(), message));
+                        alert.setActive(false);
                     }
                 } catch (Exception e) {
                     log.error("Error checking alert: {}", e.getMessage(), e);
