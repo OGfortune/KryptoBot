@@ -69,6 +69,7 @@ public class AlertScheduler {
                                 alert.getSymbol(), priceDto.getPrice(), alert.getConditionType(), alert.getTargetPrice());
                         absSender.execute(menuBuilder.sendMessage(alert.getChatId(), message));
                         alert.setActive(false);
+                        alertService.updateAlert(alert);
                     }
                 } catch (Exception e) {
                     log.error("Error checking alert: {}", e.getMessage(), e);

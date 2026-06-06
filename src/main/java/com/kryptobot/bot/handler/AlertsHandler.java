@@ -107,10 +107,10 @@ public class AlertsHandler implements CommandHandler {
 
             String successMessage = String.format("""
                             ✅ Alerts has been created successfully!\s
-                            
-                            Your new alert is for: %s %s %s\
+ 
+                            Your new alert is for: %s %s %s \
                             You'll be notified when the price is triggered.
-                            Use /alert to see all your alert.""",
+                            Use /getalertd to see all your alert.""",
                     symbol, conditionType, targetPrice);
             tryExecute(absSender, menuBuilder.sendMessage(chatId, successMessage));
         } catch (Exception e) {
@@ -125,7 +125,7 @@ public class AlertsHandler implements CommandHandler {
         String userName = update.getMessage().getFrom().getUserName();
 
         try {
-            List<Alert> alert = alertService.getAlertsByUser(userId);
+            List<Alert> alert = alertService.getActiveAlertsByUser(userId);
 
             if (alert.isEmpty()) {
                 tryExecute(absSender, menuBuilder.sendMessage(chatId,

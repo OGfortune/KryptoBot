@@ -637,12 +637,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Email: your.email@example.com
 - LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
 
-## 🙏 Acknowledgments
 
-- Thanks to [CoinGecko](https://www.coingecko.com/) for the free crypto API
-- Thanks to [Telegram](https://telegram.org/) for the bot platform
-- Thanks to the Spring Boot community for the excellent framework
-- Thanks to all contributors who have helped improve this project
 
 ## 📞 Support
 

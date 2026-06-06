@@ -2,11 +2,14 @@ package com.kryptobot.alert;
 
 import com.kryptobot.enums.ConditionType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AlertService {
@@ -43,5 +46,11 @@ public class AlertService {
     public boolean deleteAlert(long Id) {
         alertRepo.deleteById(Id);
         return true;
+    }
+
+    @Transactional
+    public void updateAlert(Alert alert) {
+        alertRepo.save(alert);
+        log.info("Alert {} updated", alert.getId());
     }
 }
