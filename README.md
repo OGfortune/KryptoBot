@@ -10,7 +10,6 @@ A powerful Telegram bot for monitoring cryptocurrency and stock prices with cust
 ## ✨ Features
 
 - 🪙 **Real-time Crypto Prices** - Get current prices for Bitcoin, Ethereum, Solana, and more
-- 📊 **Stock Prices** - Monitor stock prices (AAPL, TSLA, GOOGL, etc.)
 - 🔔 **Price Alerts** - Set custom alerts when prices reach your target
 - 💾 **Alert Management** - Create, view, and delete alerts easily
 - ⚡ **Caching** - Redis-based caching for fast price lookups
@@ -53,16 +52,12 @@ A powerful Telegram bot for monitoring cryptocurrency and stock prices with cust
     - Website: https://www.coingecko.com/en/api
     - No key required for free tier (10-50 calls/min)
 
-2. **Alpha Vantage** (Optional) - For stock prices
-    - Website: https://www.alphavantage.co/
-    - Free tier: 5 calls/minute
-
 ## 🚀 Quick Start
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/kryptobot.git
+git clone https://github.com/ogfortune/kryptobot.git
 cd kryptobot
 ```
 
@@ -109,7 +104,7 @@ docker run -d --name postgres \
   -e POSTGRES_USER=kryptobot \
   -e POSTGRES_PASSWORD=kryptobot123 \
   -p 5432:5432 \
-  postgres:15-alpine
+  postgres:16-alpine
 
 docker run -d --name redis \
   -p 6379:6379 \
@@ -219,52 +214,95 @@ kryptobot/
 
 ## 🔧 Configuration
 
-### application.yaml (Docker)
+### application.yaml (Docker + Local)
 
 ```yaml
 spring:
+  application:
+    name: KryptoBot
+    version: 1.0.0
+
+  config:
+    import: optional:file:.env[.properties]
+
   datasource:
-    url: jdbc:postgresql://postgres:5432/kryptobot
-    username: kryptobot
-    password: kryptobot123
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:5432/kryptobot
+    driver-class-name: org.postgresql.Driver
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      auto-commit: true
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
 
   data:
     redis:
-      host: redis
+      host: ${REDIS_HOST:localhost}
       port: 6379
-
   cache:
     type: redis
-    redis:
-      time-to-live: 600000  # 10 minutes
+
+server:
+  port: 8080
 
 telegram:
   bot:
     token: ${TELEGRAM_BOT_TOKEN}
     username: ${TELEGRAM_BOT_USERNAME}
+
+coingecko:
+  api-key: ${COIN_GECKO_KEY}
+  timeout: 10000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  metrics:
+    enable:
+      jvm: true
+      process: true
+      system: true
+
+app:
+  name: KryptoBot
+  description: Telegram bot for cryptocurrency tracking
+  version: 1.0.0
 ```
 
-### application-dev.yaml (Local Development)
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/kryptobot
-    username: kryptobot
-    password: kryptobot123
-
-  data:
-    redis:
-      host: localhost
-      port: 6379
-
-  jpa:
-    show-sql: true
-
-logging:
-  level:
-    com.oghenemalu.kryptobot: DEBUG
-```
 
 ## 🐳 Docker Setup
 
@@ -435,11 +473,10 @@ docker-compose logs -f kryptobot
 ```
 /price BTC
 /price ETH
-/price AAPL
+
 
 /setalert BTC above 40000
 /setalert ETH below 1500
-/setalert AAPL above 180
 
 /alerts
 
@@ -451,7 +488,6 @@ docker-compose logs -f kryptobot
 ### Caching Strategy
 
 - **Crypto Prices**: Cached for 10 minutes (API limit: 10-30 calls/min)
-- **Stock Prices**: Cached for 15 minutes (API limit: 5 calls/min)
 - **Redis TTL**: Configurable via `spring.cache.redis.time-to-live`
 
 ### Database Optimization
@@ -563,11 +599,10 @@ Error: java.net.UnknownHostException: postgres
 **Solution**: Ensure you're using `localhost` for local development and `postgres` for Docker:
 
 ```yaml
-# Local development (application-dev.yaml)
-url: jdbc:postgresql://localhost:5432/kryptobot
+# Local and Docker development (application.yaml)
+#POSTGRES_HOST should equal postgres in .env
+url: jdbc:postgresql://${POSTGRES_HOST:localhost}:5432/kryptobot
 
-# Docker (application.yaml)
-url: jdbc:postgresql://postgres:5432/kryptobot
 ```
 
 ### Redis Connection Failed
@@ -625,29 +660,16 @@ kryptobot:
 - [Redis Documentation](https://redis.io/documentation)
 - [Docker Documentation](https://docs.docker.com/)
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👨‍💻 Author
 
 **Oghenemalu Ighoiye**
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
+- GitHub: [@OGFortune](https://github.com/OGFortune)
+
+- LinkedIn: https://www.linkedin.com/in/oghenemalu-fortune-ighoiye-3bb916186/)
 
 
-
-## 📞 Support
-
-If you have questions or need help:
-
-1. **Check existing issues** - https://github.com/yourusername/kryptobot/issues
-2. **Create a new issue** - Include logs and describe the problem
-3. **Start a discussion** - https://github.com/yourusername/kryptobot/discussions
-
----
 
 **Made with ❤️ by Oghenemalu Ighoiye**
 
